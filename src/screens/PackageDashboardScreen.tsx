@@ -155,6 +155,16 @@ export default function PackageDashboardScreen({ navigation, route }: Props) {
         <Text style={styles.remarksBtnText}>📝  Progress Remarks</Text>
         <Text style={styles.remarksChevron}>›</Text>
       </TouchableOpacity>
+
+      {/* Team Hub — viewable by everyone (viewers can read). */}
+      <TouchableOpacity
+        style={styles.remarksBtn}
+        onPress={() => navigation.navigate('ChannelList')}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.remarksBtnText}>💬  Team Hub</Text>
+        <Text style={styles.remarksChevron}>›</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }

@@ -17,6 +17,9 @@ import CashOutflowFormScreen from './src/screens/CashOutflowFormScreen';
 import MilestoneFormScreen from './src/screens/MilestoneFormScreen';
 import MilestoneDetailScreen from './src/screens/MilestoneDetailScreen';
 import RemarksScreen from './src/screens/RemarksScreen';
+import ChannelListScreen from './src/screens/ChannelListScreen';
+import ThreadListScreen from './src/screens/ThreadListScreen';
+import ThreadScreen from './src/screens/ThreadScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -29,6 +32,9 @@ export type RootStackParamList = {
   MilestoneForm: { packageId: string; orgId: string; userName: string };
   MilestoneDetail: { packageId: string; orgId: string; milestoneName: string; userName: string };
   Remarks: { packageId: string };
+  ChannelList: undefined;
+  ThreadList: { channelId: string; channelName: string };
+  Thread: { threadId: string; channelId: string; channelName: string; threadTitle: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -87,6 +93,9 @@ function AppNavigator() {
             <Stack.Screen name="MilestoneForm"    component={MilestoneFormScreen}    options={{ title: 'Milestones' }} />
             <Stack.Screen name="MilestoneDetail"  component={MilestoneDetailScreen}  options={({ route }) => ({ title: route.params.milestoneName })} />
             <Stack.Screen name="Remarks"          component={RemarksScreen}          options={{ title: 'Progress Remarks' }} />
+            <Stack.Screen name="ChannelList"      component={ChannelListScreen}      options={{ title: 'Team Hub' }} />
+            <Stack.Screen name="ThreadList"       component={ThreadListScreen}       options={({ route }) => ({ title: route.params.channelName })} />
+            <Stack.Screen name="Thread"           component={ThreadScreen}           options={({ route }) => ({ title: route.params.threadTitle })} />
           </>
         )}
       </Stack.Navigator>
