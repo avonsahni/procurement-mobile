@@ -6,7 +6,7 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { DashboardData, formatAmount } from '../lib/types';
+import { DashboardData, formatAmount, canWrite } from '../lib/types';
 import { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PackageDashboard'>;
@@ -72,6 +72,7 @@ export default function PackageDashboardScreen({ navigation, route }: Props) {
   const cy   = data.currency;
   const name = user?.fullName || user?.email || '';
   const orgId = user?.orgId || '';
+  const writable = canWrite(user?.role);
 
   return (
     <ScrollView
@@ -114,30 +115,46 @@ export default function PackageDashboardScreen({ navigation, route }: Props) {
         </View>
       </View>
 
-      {/* Action buttons */}
-      <Text style={styles.sectionTitle}>Add Entry</Text>
-      <View style={styles.actions}>
-        <ActionBtn
-          label="+ Invoice"
-          color="#2563eb"
-          onPress={() => navigation.navigate('InvoiceForm', { packageId, currency: cy, userName: name })}
-        />
-        <ActionBtn
-          label="+ Cash In"
-          color="#0891b2"
-          onPress={() => navigation.navigate('CashInflowForm', { packageId, currency: cy, userName: name })}
-        />
-        <ActionBtn
-          label="+ Cash Out"
-          color="#d97706"
-          onPress={() => navigation.navigate('CashOutflowForm', { packageId, currency: cy, userName: name })}
-        />
-        <ActionBtn
-          label="+ Milestone"
-          color="#7c3aed"
-          onPress={() => navigation.navigate('MilestoneForm', { packageId, orgId, userName: name })}
-        />
-      </View>
+      {/* Action buttons — only for users who can write. */}
+      {writable ? (
+        <>
+          <Text style={styles.sectionTitle}>Add Entry</Text>
+          <View style={styles.actions}>
+            <ActionBtn
+              label="+ Invoice"
+              color="#2563eb"
+              onPress={() => navigation.navigate('InvoiceForm', { packageId, currency: cy, userName: name })}
+            />
+            <ActionBtn
+              label="+ Cash In"
+              color="#0891b2"
+              onPress={() => navigation.navigate('CashInflowForm', { packageId, currency: cy, userName: name })}
+            />
+            <ActionBtn
+              label="+ Cash Out"
+              color="#d97706"
+              onPress={() => navigation.navigate('CashOutflowForm', { packageId, currency: cy, userName: name })}
+            />
+            <ActionBtn
+              label="+ Milestone"
+              color="#7c3aed"
+              onPress={() => navigation.navigate('MilestoneForm', { packageId, orgId, userName: name })}
+            />
+          </View>
+        </>
+      ) : (
+        <Text style={styles.readOnlyNote}>Read-only access</Text>
+      )}
+
+      {/* Progress Remarks — viewable by everyone (read-only handled in-screen). */}
+      <TouchableOpacity
+        style={styles.remarksBtn}
+        onPress={() => navigation.navigate('Remarks', { packageId })}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.remarksBtnText}>📝  Progress Remarks</Text>
+        <Text style={styles.remarksChevron}>›</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -184,6 +201,14 @@ const styles = StyleSheet.create({
   progressTrack: { height: 8, backgroundColor: '#ede9fe', borderRadius: 4, overflow: 'hidden' },
   progressFill: { height: 8, backgroundColor: '#7c3aed', borderRadius: 4 },
   sectionTitle: { fontSize: 12, fontWeight: '700', color: '#64748b', marginLeft: 14, marginTop: 16, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  readOnlyNote: { fontSize: 13, color: '#94a3b8', marginLeft: 14, marginTop: 20, fontStyle: 'italic' },
+  remarksBtn: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    borderRadius: 14, borderWidth: 1, borderColor: '#e2e8f0',
+    padding: 16, marginHorizontal: 12, marginTop: 16,
+  },
+  remarksBtnText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#1e293b' },
+  remarksChevron: { fontSize: 22, color: '#cbd5e1', fontWeight: '300' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 8, paddingBottom: 32 },
   actionBtn: { borderRadius: 14, padding: 18, margin: 4, width: '46%', alignItems: 'center' },
   actionBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },

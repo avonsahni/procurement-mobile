@@ -35,6 +35,9 @@ export interface DashboardData {
   milestoneProgress: number;
 }
 
+// Roles allowed to write. Anyone else (e.g. 'viewer') is read-only.
+export const canWrite = (role?: string) => ['owner', 'admin', 'editor'].includes(role ?? '');
+
 export const MILESTONE_NAMES = [
   'Mobilisation',
   'Preliminaries',

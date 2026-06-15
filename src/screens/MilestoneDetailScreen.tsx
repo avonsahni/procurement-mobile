@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { canWrite } from '../lib/types';
 import { FormField } from '../components/FormField';
 import { DateField } from '../components/DateField';
 import { RootStackParamList } from '../../App';
@@ -29,6 +31,8 @@ const EMPTY_FORM = { description: '', start_date: '', end_date: '', progress: '0
 
 export default function MilestoneDetailScreen({ route }: Props) {
   const { packageId, orgId, milestoneName, userName } = route.params;
+  const { user } = useAuth();
+  const writable = canWrite(user?.role);
 
   const [tasks, setTasks] = useState<MilestoneTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -136,11 +140,12 @@ export default function MilestoneDetailScreen({ route }: Props) {
               <Text style={styles.pctLabel}>Completion</Text>
               <View style={styles.pctInputWrap}>
                 <TextInput
-                  style={styles.pctInput}
+                  style={[styles.pctInput, !writable && styles.pctInputDisabled]}
                   defaultValue={String(task.progress)}
                   keyboardType="number-pad"
                   maxLength={3}
                   selectTextOnFocus
+                  editable={writable}
                   onEndEditing={e => saveProgress(task, e.nativeEvent.text)}
                 />
                 <Text style={styles.pctSign}>%</Text>
@@ -157,8 +162,10 @@ export default function MilestoneDetailScreen({ route }: Props) {
         ))
       )}
 
-      {/* Add task */}
-      {!addOpen ? (
+      {/* Add task — only for users who can write. */}
+      {!writable ? (
+        <Text style={styles.readOnlyNote}>Read-only access</Text>
+      ) : !addOpen ? (
         <TouchableOpacity style={styles.addBtn} onPress={() => setAddOpen(true)} activeOpacity={0.8}>
           <Text style={styles.addBtnText}>+ Add Task to {milestoneName}</Text>
         </TouchableOpacity>
@@ -233,7 +240,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 6, fontSize: 15, fontWeight: '700',
     color: '#0f172a', minWidth: 56, textAlign: 'right',
   },
+  pctInputDisabled: { backgroundColor: '#f1f5f9', color: '#94a3b8' },
   pctSign: { fontSize: 15, fontWeight: '700', color: '#64748b', marginLeft: 4 },
+  readOnlyNote: { fontSize: 13, color: '#94a3b8', marginTop: 4, fontStyle: 'italic' },
   progressTrack: { height: 6, borderRadius: 3, backgroundColor: '#ede9fe', marginTop: 12, overflow: 'hidden' },
   progressFill: { height: 6, borderRadius: 3, backgroundColor: '#7c3aed' },
   addBtn: {

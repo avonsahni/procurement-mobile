@@ -16,6 +16,7 @@ import CashInflowFormScreen from './src/screens/CashInflowFormScreen';
 import CashOutflowFormScreen from './src/screens/CashOutflowFormScreen';
 import MilestoneFormScreen from './src/screens/MilestoneFormScreen';
 import MilestoneDetailScreen from './src/screens/MilestoneDetailScreen';
+import RemarksScreen from './src/screens/RemarksScreen';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   CashOutflowForm: { packageId: string; currency: string; userName: string };
   MilestoneForm: { packageId: string; orgId: string; userName: string };
   MilestoneDetail: { packageId: string; orgId: string; milestoneName: string; userName: string };
+  Remarks: { packageId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -84,6 +86,7 @@ function AppNavigator() {
             <Stack.Screen name="CashOutflowForm"  component={CashOutflowFormScreen}  options={{ title: 'Add Cash Outflow' }} />
             <Stack.Screen name="MilestoneForm"    component={MilestoneFormScreen}    options={{ title: 'Milestones' }} />
             <Stack.Screen name="MilestoneDetail"  component={MilestoneDetailScreen}  options={({ route }) => ({ title: route.params.milestoneName })} />
+            <Stack.Screen name="Remarks"          component={RemarksScreen}          options={{ title: 'Progress Remarks' }} />
           </>
         )}
       </Stack.Navigator>

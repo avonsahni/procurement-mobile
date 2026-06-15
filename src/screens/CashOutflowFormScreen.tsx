@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { canWrite } from '../lib/types';
 import { FormField } from '../components/FormField';
 import { RootStackParamList } from '../../App';
 
@@ -14,6 +16,8 @@ function todayISO() { return new Date().toISOString().split('T')[0]; }
 
 export default function CashOutflowFormScreen({ navigation, route }: Props) {
   const { packageId, currency, userName } = route.params;
+  const { user } = useAuth();
+  const writable = canWrite(user?.role);
   const [form, setForm] = useState({
     to_whom: '',
     on_account_of: '',
@@ -101,9 +105,15 @@ export default function CashOutflowFormScreen({ navigation, route }: Props) {
           numberOfLines={3}
           style={styles.multiline}
         />
-        <TouchableOpacity style={[styles.btn, { backgroundColor: '#d97706' }]} onPress={handleSave} disabled={saving}>
-          {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Save Cash Outflow</Text>}
-        </TouchableOpacity>
+        {writable ? (
+          <TouchableOpacity style={[styles.btn, { backgroundColor: '#d97706' }]} onPress={handleSave} disabled={saving}>
+            {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Save Cash Outflow</Text>}
+          </TouchableOpacity>
+        ) : (
+          <View style={[styles.btn, styles.btnDisabled]}>
+            <Text style={styles.btnDisabledText}>You have read-only access</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -116,4 +126,6 @@ const styles = StyleSheet.create({
   multiline: { height: 90, textAlignVertical: 'top' },
   btn: { borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  btnDisabled: { backgroundColor: '#e2e8f0' },
+  btnDisabledText: { color: '#64748b', fontSize: 15, fontWeight: '600' },
 });
