@@ -4,19 +4,12 @@
     "slug": "procurement-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "backgroundColor": "#1e3a5f"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "in.procuretrack.mobile"
     },
     "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#1e3a5f"
-      },
       "package": "in.procuretrack.mobile"
     },
     "web": {
