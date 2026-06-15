@@ -56,7 +56,13 @@ export default function CashOutflowFormScreen({ navigation, route }: Props) {
   };
 
   return (
-    <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+      alwaysBounceVertical
+      showsVerticalScrollIndicator
+    >
       <View style={styles.form}>
         <FormField
           label="To Whom"
@@ -105,6 +111,7 @@ export default function CashOutflowFormScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: '#f1f5f9' },
+  scrollContent: { flexGrow: 1, paddingBottom: 48 },
   form: { padding: 16 },
   multiline: { height: 90, textAlignVertical: 'top' },
   btn: { borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },

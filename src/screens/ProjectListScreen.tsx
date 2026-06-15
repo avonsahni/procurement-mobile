@@ -3,9 +3,11 @@ import {
   View, Text, FlatList, TouchableOpacity, StyleSheet,
   ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { useProject } from '../context/ProjectContext';
 import { Project } from '../lib/types';
 import { RootStackParamList } from '../../App';
 
@@ -20,9 +22,13 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function ProjectListScreen({ navigation }: Props) {
   const { user, signOut } = useAuth();
+  const { setProjectName } = useProject();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // No single project in context while viewing the projects list.
+  useFocusEffect(useCallback(() => { setProjectName(''); }, [setProjectName]));
 
   const fetchProjects = useCallback(async () => {
     if (!user) return;
@@ -58,6 +64,7 @@ export default function ProjectListScreen({ navigation }: Props) {
   return (
     <FlatList
       style={styles.list}
+      alwaysBounceVertical
       contentContainerStyle={projects.length === 0 ? styles.emptyContainer : styles.listContent}
       data={projects}
       keyExtractor={p => p.id}
@@ -93,7 +100,7 @@ export default function ProjectListScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   list: { flex: 1, backgroundColor: '#f1f5f9' },
-  listContent: { padding: 12 },
+  listContent: { padding: 12, paddingBottom: 48 },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyIcon: { fontSize: 40, marginBottom: 12 },

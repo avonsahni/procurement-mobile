@@ -76,6 +76,9 @@ export default function PackageDashboardScreen({ navigation, route }: Props) {
   return (
     <ScrollView
       style={styles.scroll}
+      contentContainerStyle={styles.scrollContent}
+      alwaysBounceVertical
+      showsVerticalScrollIndicator
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563eb" />}
     >
       {/* Stage pill */}
@@ -159,6 +162,7 @@ function ActionBtn({ label, color, onPress }: { label: string; color: string; on
 
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: '#f1f5f9' },
+  scrollContent: { flexGrow: 1, paddingBottom: 48 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   stagePill: {
     margin: 12, marginBottom: 4, alignSelf: 'flex-start',

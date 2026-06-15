@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { supabase } from '../lib/supabase';
+import { useProject } from '../context/ProjectContext';
 import { Package } from '../lib/types';
 import { RootStackParamList } from '../../App';
 
@@ -19,10 +20,14 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 export default function PackageListScreen({ navigation, route }: Props) {
-  const { projectId } = route.params;
+  const { projectId, projectName } = route.params;
+  const { setProjectName } = useProject();
   const [packages, setPackages] = useState<Package[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Make the project name available to the header on this and all downstream screens.
+  useEffect(() => { setProjectName(projectName); }, [projectName, setProjectName]);
 
   const fetchPackages = useCallback(async () => {
     const { data } = await supabase
@@ -60,6 +65,7 @@ export default function PackageListScreen({ navigation, route }: Props) {
   return (
     <FlatList
       style={styles.list}
+      alwaysBounceVertical
       contentContainerStyle={packages.length === 0 ? styles.emptyContainer : styles.listContent}
       data={packages}
       keyExtractor={p => p.id}
@@ -101,7 +107,7 @@ export default function PackageListScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   list: { flex: 1, backgroundColor: '#f1f5f9' },
-  listContent: { padding: 12 },
+  listContent: { padding: 12, paddingBottom: 48 },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyIcon: { fontSize: 40, marginBottom: 12 },
