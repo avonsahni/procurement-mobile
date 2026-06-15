@@ -29,7 +29,8 @@
           "photosPermission": "ProcureTrack needs access to your photos to attach images to progress remarks.",
           "cameraPermission": "ProcureTrack needs access to your camera to capture site photos for progress remarks."
         }
-      ]
+      ],
+      "./plugins/withImageCropperFix"
     ],
     "extra": {
       "eas": {
