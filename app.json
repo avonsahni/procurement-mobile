@@ -10,7 +10,10 @@
       "bundleIdentifier": "in.procuretrack.mobile"
     },
     "android": {
-      "package": "in.procuretrack.mobile"
+      "package": "in.procuretrack.mobile",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro"
@@ -23,6 +26,12 @@
           "cameraPermission": "ProcureTrack needs access to your camera to capture site photos for progress remarks."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "300aed46-3f0f-4391-81c3-eacfb660ace2"
+      }
+    },
+    "owner": "avonsahni"
   }
 }
