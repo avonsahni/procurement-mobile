@@ -15,9 +15,7 @@
     },
     "android": {
       "package": "in.procuretrack.mobile",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "permissions": []
     },
     "web": {
       "bundler": "metro"
@@ -26,8 +24,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "ProcureTrack needs access to your photos to attach images to progress remarks.",
-          "cameraPermission": "ProcureTrack needs access to your camera to capture site photos for progress remarks."
+          "photosPermission": "ProcureTrack needs access to your photos to attach images to progress remarks."
         }
       ],
       "./plugins/withImageCropperFix"

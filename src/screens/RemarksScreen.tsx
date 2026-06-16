@@ -96,19 +96,6 @@ export default function RemarksScreen({ route }: Props) {
     }
   };
 
-  const pickFromCamera = async () => {
-    if (photos.length >= MAX_PHOTOS) { Alert.alert('Limit reached', `Maximum ${MAX_PHOTOS} photos.`); return; }
-    try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== 'granted') { Alert.alert('Permission needed', 'Allow camera access to capture photos.'); return; }
-      const result = await ImagePicker.launchCameraAsync({ quality: 1 });
-      if (!result.canceled) addAssets(result.assets);
-    } catch (e: any) {
-      // The iOS Simulator has no camera; this works on a physical device.
-      Alert.alert('Camera unavailable', e?.message || 'The camera is not available on this device.');
-    }
-  };
-
   const removePhoto = (idx: number) => setPhotos(prev => prev.filter((_, i) => i !== idx));
 
   const handlePost = async () => {
@@ -188,9 +175,6 @@ export default function RemarksScreen({ route }: Props) {
             <View style={styles.photoActions}>
               <TouchableOpacity style={styles.photoBtn} onPress={pickFromLibrary} disabled={posting}>
                 <Text style={styles.photoBtnText}>🖼  Library</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.photoBtn} onPress={pickFromCamera} disabled={posting}>
-                <Text style={styles.photoBtnText}>📷  Camera</Text>
               </TouchableOpacity>
               <Text style={styles.counter}>{photos.length}/{MAX_PHOTOS}</Text>
             </View>
