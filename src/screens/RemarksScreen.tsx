@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity, Image, StyleSheet,
   ActivityIndicator, Alert, RefreshControl, Modal, Platform,
@@ -21,6 +21,15 @@ interface Remark {
   image_urls: string[] | null;
 }
 
+interface Member {
+  id: string;
+  full_name: string;
+}
+
+// How many suggestion rows fit before the dropdown scrolls (~6 visible).
+const MENTION_ROW_HEIGHT = 44;
+const MENTION_VISIBLE_ROWS = 6;
+
 function formatTs(ts: string): string {
   const d = new Date(ts);
   return d.toLocaleString(undefined, {
@@ -42,6 +51,74 @@ export default function RemarksScreen({ route }: Props) {
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [posting, setPosting] = useState(false);
   const [viewer, setViewer] = useState<string | null>(null);
+
+  // @-mention typeahead (display-text only; nothing is written to a mentions table).
+  const [members, setMembers] = useState<Member[]>([]);
+  const [cursor, setCursor] = useState(0);
+  const [suppressMentions, setSuppressMentions] = useState(false);
+  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load org members once on mount; exclude the current user (no point @-ing yourself).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!user?.orgId) return;
+      const { data: mem } = await supabase
+        .from('organization_members')
+        .select('user_id')
+        .eq('org_id', user.orgId);
+      const ids = (mem || [])
+        .map((r: any) => r.user_id as string)
+        .filter(id => id && id !== user.id);
+      if (ids.length === 0) { if (!cancelled) setMembers([]); return; }
+      const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', ids);
+      const list: Member[] = (profs || [])
+        .map((p: any) => ({ id: p.id as string, full_name: (p.full_name as string) || '' }))
+        .filter(m => m.full_name)
+        .sort((a, b) => a.full_name.localeCompare(b.full_name));
+      if (!cancelled) setMembers(list);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.orgId, user?.id]);
+
+  useEffect(() => () => { if (blurTimer.current) clearTimeout(blurTimer.current); }, []);
+
+  // Active "@query" = the run of non-space chars between the nearest preceding "@"
+  // (at start-of-text or after whitespace) and the cursor.
+  const mention = useMemo(() => {
+    const before = text.slice(0, cursor);
+    const at = before.lastIndexOf('@');
+    if (at === -1) return null;
+    const prev = at > 0 ? before[at - 1] : '';
+    if (prev && !/\s/.test(prev)) return null;   // don't trigger on e.g. an email "a@b"
+    const query = before.slice(at + 1);
+    if (/\s/.test(query)) return null;           // a space closes the mention
+    return { start: at, query };
+  }, [text, cursor]);
+
+  const suggestions = useMemo(() => {
+    if (!mention) return [];
+    const q = mention.query.toLowerCase();
+    return members
+      .filter(m => m.full_name.toLowerCase().includes(q))
+      .sort((a, b) => {
+        const aStarts = a.full_name.toLowerCase().startsWith(q) ? 0 : 1;
+        const bStarts = b.full_name.toLowerCase().startsWith(q) ? 0 : 1;
+        return aStarts - bStarts || a.full_name.localeCompare(b.full_name);
+      });
+  }, [mention, members]);
+
+  const showMentions = writable && !suppressMentions && !!mention && suggestions.length > 0;
+
+  // Replace the active "@query" fragment with "@FullName " (trailing space) and close.
+  const insertMention = (m: Member) => {
+    if (!mention) return;
+    const inserted = `@${m.full_name} `;
+    const next = text.slice(0, mention.start) + inserted + text.slice(cursor);
+    setText(next);
+    setCursor(mention.start + inserted.length);
+    setSuppressMentions(false);
+  };
 
   const fetchRemarks = useCallback(async () => {
     const { data } = await supabase
@@ -149,15 +226,35 @@ export default function RemarksScreen({ route }: Props) {
         {writable ? (
           <View style={styles.composeCard}>
             <Text style={styles.sectionHeading}>New Remark</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Describe site progress…"
-              placeholderTextColor="#94a3b8"
-              value={text}
-              onChangeText={setText}
-              multiline
-              numberOfLines={4}
-            />
+            <View style={styles.inputWrap}>
+              <TextInput
+                style={styles.input}
+                placeholder="Describe site progress…  Use @ to mention a teammate"
+                placeholderTextColor="#94a3b8"
+                value={text}
+                onChangeText={t => { setText(t); setSuppressMentions(false); }}
+                onSelectionChange={e => setCursor(e.nativeEvent.selection.start)}
+                onFocus={() => setSuppressMentions(false)}
+                onBlur={() => { blurTimer.current = setTimeout(() => setSuppressMentions(true), 200); }}
+                multiline
+                numberOfLines={4}
+              />
+              {showMentions ? (
+                <View style={styles.mentionBox}>
+                  <ScrollView
+                    style={{ maxHeight: MENTION_ROW_HEIGHT * MENTION_VISIBLE_ROWS }}
+                    keyboardShouldPersistTaps="handled"
+                    nestedScrollEnabled
+                  >
+                    {suggestions.map(m => (
+                      <TouchableOpacity key={m.id} style={styles.mentionRow} onPress={() => insertMention(m)}>
+                        <Text style={styles.mentionName}>{m.full_name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              ) : null}
+            </View>
 
             {photos.length > 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.thumbRow}>
@@ -245,11 +342,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 20,
     borderWidth: 1, borderColor: '#e2e8f0',
   },
+  inputWrap: { position: 'relative', zIndex: 10 },
   input: {
     borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 10, padding: 12,
     fontSize: 15, color: '#0f172a', backgroundColor: '#f8fafc',
     minHeight: 90, textAlignVertical: 'top',
   },
+  mentionBox: {
+    position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4,
+    backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 10,
+    overflow: 'hidden', zIndex: 1000, elevation: 8,
+    shadowColor: '#0f172a', shadowOpacity: 0.12, shadowRadius: 12, shadowOffset: { width: 0, height: 4 },
+  },
+  mentionRow: {
+    paddingHorizontal: 14, paddingVertical: 11,
+    borderBottomWidth: 1, borderBottomColor: '#f1f5f9',
+  },
+  mentionName: { fontSize: 14, fontWeight: '600', color: '#0f172a' },
   thumbRow: { marginTop: 12 },
   thumbWrap: { marginRight: 10, position: 'relative' },
   thumb: { width: 72, height: 72, borderRadius: 8, backgroundColor: '#e2e8f0' },
