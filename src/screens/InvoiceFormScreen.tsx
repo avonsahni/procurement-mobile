@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { canWrite } from '../lib/types';
 import { FormField } from '../components/FormField';
+import { DateField } from '../components/DateField';
 import { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'InvoiceForm'>;
@@ -80,11 +81,11 @@ export default function InvoiceFormScreen({ navigation, route }: Props) {
           onChangeText={v => set('amount', v)}
           keyboardType="decimal-pad"
         />
-        <FormField
+        <DateField
           label="Invoice Date"
-          placeholder="YYYY-MM-DD"
           value={form.invoice_date}
-          onChangeText={v => set('invoice_date', v)}
+          onChange={v => set('invoice_date', v)}
+          required
         />
         <FormField
           label="Notes"

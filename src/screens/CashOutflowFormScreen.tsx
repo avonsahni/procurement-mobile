@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { canWrite } from '../lib/types';
 import { FormField } from '../components/FormField';
+import { DateField } from '../components/DateField';
 import { RootStackParamList } from '../../App';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CashOutflowForm'>;
@@ -82,11 +83,11 @@ export default function CashOutflowFormScreen({ navigation, route }: Props) {
           value={form.on_account_of}
           onChangeText={v => set('on_account_of', v)}
         />
-        <FormField
+        <DateField
           label="Date Paid"
-          placeholder="YYYY-MM-DD"
           value={form.date_paid}
-          onChangeText={v => set('date_paid', v)}
+          onChange={v => set('date_paid', v)}
+          required
         />
         <FormField
           label={`Amount (${currency})`}
